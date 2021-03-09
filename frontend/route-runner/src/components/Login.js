@@ -15,7 +15,7 @@ function Login() {
   useEffect(() => {
     async function verifyLogin() {
       if (loggedIn) {
-        const response = await axios.post("http://127.0.0.1:5000/", {
+        const response = await axios.post("http://127.0.0.1:5000/signup", {
           token: tokenId,
         });
         console.log(response);
