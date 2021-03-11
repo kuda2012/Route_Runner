@@ -1,26 +1,23 @@
-
-DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS routes;
+DROP TABLE IF EXISTS users;
+
 
 
 CREATE TABLE "users" (
-    "email" text   NOT NULL UNIQUE,
+    "id" SERIAL PRIMARY KEY,
+    "email" text NOT NULL UNIQUE,
     "name" text NOT NULL,
     "password" text   NOT NULL,
-    "google_enabled" boolean   NOT NULL,
-    CONSTRAINT "pk_users" PRIMARY KEY (
-        "email"
-     )
+    "google_enabled" boolean   NOT NULL
 );
 
 CREATE TABLE "routes" (
-    "owner" text   NOT NULL,
+    "id" SERIAL PRIMARY KEY,
+    "owner_id" INT,
+    "name" text,
     "path" text[]   NOT NULL,
     "distance" text   NOT NULL,
-    CONSTRAINT "pk_routes" PRIMARY KEY (
-        "owner"
-     ),
     CONSTRAINT fk_user
-    FOREIGN KEY(owner) 
-	REFERENCES users(email)
+    FOREIGN KEY(owner_id) 
+	REFERENCES users(id)
 );

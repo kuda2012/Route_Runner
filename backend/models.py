@@ -14,12 +14,15 @@ class User(db.Model):
     """User in the system."""
 
     __tablename__ = 'users'
-
+    
+    id = db.Column(
+        db.Integer,
+        primary_key=True,
+    )
     email = db.Column(
         db.Text,
         nullable=False,
         unique=True,
-        primary_key=True,
     )
 
     name = db.Column(db.Text, nullable=False)
@@ -86,8 +89,17 @@ class Routes(db.Model):
 
     __tablename__ = 'routes'
 
-
-    owner = db.Column(db.Integer, db.ForeignKey('users.email'), nullable=False, primary_key=True)
+    id = db.Column(db.Integer, nullable=False, primary_key=True)
+    name = db.Column(db.Text, nullable = False)
+    owner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     path = db.Column(ARRAY(db.Text), nullable=False)
     distance = db.Column(db.Text, nullable=False, default=0)
     
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name":self.name,
+            "owner_id": self.owner_id,
+            "path": self.path,
+            "distance": self.distance,
+        }
