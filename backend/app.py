@@ -25,6 +25,7 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "secret")
 
 CLIENT_ID = "1039642844103-gr5uhujf57uobmu1pha83qgj3mctgpjn.apps.googleusercontent.com"
 
+CURR_USER_KEY = "curr_user"
 
 toolbar = DebugToolbarExtension(app)
 
@@ -32,6 +33,52 @@ connect_db(app)
 
 
 db.create_all()
+
+
+@app.before_request
+def add_user_to_g():
+    """If we're logged in, add curr user to Flask global."""
+
+    if CURR_USER_KEY in session:
+        g.user = User.query.get(session[CURR_USER_KEY])
+
+    else:
+        g.user = None
+
+
+def do_login(user):
+    """Log in user."""
+
+    session[CURR_USER_KEY] = user.id
+
+
+def do_logout():
+    """Logout user."""
+
+    if CURR_USER_KEY in session:
+        del session[CURR_USER_KEY]
+
+
+class InvalidUsage(Exception):
+    status_code = 400
+
+    def __init__(self, message, status_code=None, payload=None):
+        Exception.__init__(self)
+        self.message = message
+        if status_code is not None:
+            self.status_code = status_code
+        self.payload = payload
+
+    def to_dict(self):
+        rv = dict(self.payload or ())
+        rv['message'] = self.message
+        return rv
+
+@app.errorhandler(InvalidUsage)
+def handle_invalid_usage(error):
+    response = jsonify(error.to_dict())
+    response.status_code = error.status_code
+    return response
 
 with open('./schema/UserSchema.json') as f:
     schema = json.load(f)
@@ -48,12 +95,13 @@ def signup():
                     google_enabled=False
                     )
         db.session.commit()
+        do_login(user)
         return f"Welcome, {user.name}!"
     except IntegrityError:
         return ("Sorry. This email has already been taken. Please choose a different one.")
 
 @app.route('/signup/google', methods=["POST"])
-def signupGoogle():
+def signup_google():
     """Signup Through Google"""
     if request.json.get("token"):
         try:
@@ -70,6 +118,7 @@ def signupGoogle():
                         google_enabled = True
                         )
                  db.session.commit()
+            do_login(user)
         except ValueError:
             return "Wrong Issuer"
         return id_info
@@ -83,6 +132,7 @@ def login():
         if not get_user.google_enabled: 
             user = User.authenticate(request.json["email"], request.json["password"])
             if user:
+                do_login(user)
                 return f"Hi {user.name}, Welcome back to Route Runner!"
             else:
                 return "The username and password you entered did not match our records. Please double-check and try again."
@@ -91,16 +141,55 @@ def login():
     else:
         return "The username and password you entered did not match our records. Please double-check and try again."
 
-@app.route("/<user_id>/routes", methods=["GET"])
-def getRoutes(user_id):
-    get_user_routes = Routes.query.filter_by(owner_id=user_id).all()
-    print(get_user_routes)
-    return get_user_routes
+@app.route('/logout', methods = ["POST"])
+def logout():
+    """Handle logout of user."""
+    if g.user:
+        user = User.query.get(session[CURR_USER_KEY])
+        do_logout()
+        return f"See you later, {user.name}", "success"
+    else:
+        raise InvalidUsage("You are not logged in", 401)
 
-@app.route("/<user_id>/routes/add", methods=["Post"])
-def addRoute(user_id):
+
+@app.route("/<user_id>/routes", methods=["GET"])
+def get_routes(user_id):
+    if not g.user:
+        raise InvalidUsage('You are not logged in', status_code=401)
+    get_user_routes = Routes.query.filter_by(owner_id=user_id).all()
+    routes_array = []
+    for route in get_user_routes:
+        routes_array.append(route.serialize())
+    return jsonify(routes_array)
+
+@app.route("/<user_id>/routes/add", methods=["POST"])
+def add_route(user_id):
+    if not g.user:
+        raise InvalidUsage('You are not logged in', status_code=401)
     added_route = Routes(owner_id=user_id, name = request.json.get("name"), path=request.json.get("path", []), distance=request.json.get("distance"))
     db.session.add(added_route)
     db.session.commit()
     added_route = added_route.serialize()
     return added_route
+
+@app.route("/routes/<route_id>/delete", methods=["DELETE"])
+def delete_route(user_id, route_id):
+    if not g.user:
+        raise InvalidUsage('You are not logged in', status_code=401)
+    delete_route = Routes.query.filter_by(id=route_id).first()
+    db.session.delete(delete_route)
+    db.session.commit()
+    delete_route = delete_route.serialize()
+    return f'Your route by the name of {delete_route.get("name")} has been deleted'
+
+@app.route("/routes/<route_id>/update", methods=["PATCH"])
+def update_route(route_id):
+    if not g.user:
+        raise InvalidUsage('You are not logged in', status_code=401)
+    update_route = Routes.query.filter_by(id=route_id).first()
+    update_route.name = request.json.get("name", update_route.name)
+    update_route.path = request.json.get("path", update_route.path)
+    update_route.distance = request.json.get("distance", update_route.distance)
+    db.session.commit()
+    update_route = update_route.serialize()
+    return jsonify(update_route)
