@@ -1,11 +1,25 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useGoogleLogout } from "react-google-login";
+import axios from "axios";
 import googleIcon from "../icons/google.svg";
 const clientId =
   "1039642844103-gr5uhujf57uobmu1pha83qgj3mctgpjn.apps.googleusercontent.com";
 
 function Logout() {
+  const [loggedIn, setLoggedIn] = useState(true);
+  useEffect(() => {
+    async function verifyLoggedOut() {
+      console.log(loggedIn);
+      if (!loggedIn) {
+        console.log("hi");
+        const response = await axios.post("http://127.0.0.1:5000/logout");
+        console.log(response);
+      }
+    }
+    verifyLoggedOut();
+  });
   const onLogoutSuccess = (res) => {
+    setLoggedIn(false);
     console.log("Logged out Success");
     alert("Logged out Successfully ✌");
   };

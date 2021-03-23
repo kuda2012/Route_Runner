@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from google.oauth2 import id_token
 from google.auth.transport import requests
 import os
+import jwt
 import re
 from models import db, connect_db, User, Routes
 import wtforms_json
@@ -21,7 +22,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = (os.environ.get(
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = False
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "secret")
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'my_precious')
 
 CLIENT_ID = "1039642844103-gr5uhujf57uobmu1pha83qgj3mctgpjn.apps.googleusercontent.com"
 
@@ -35,12 +36,12 @@ connect_db(app)
 db.create_all()
 
 
-@app.before_request
-def add_user_to_g():
+@app.teardown_request
+def add_user_to_g(self):
     """If we're logged in, add curr user to Flask global."""
-
     if CURR_USER_KEY in session:
         g.user = User.query.get(session[CURR_USER_KEY])
+        print(g.user)
 
     else:
         g.user = None
@@ -96,7 +97,8 @@ def signup():
                     )
         db.session.commit()
         do_login(user)
-        return f"Welcome, {user.name}!"
+        token = User.encode_auth_token(user.email)
+        return {"token":token, "msg":f"Hi, {user.name}! Welcome to Route Runner!"}
     except IntegrityError:
         return ("Sorry. This email has already been taken. Please choose a different one.")
 
@@ -118,10 +120,14 @@ def signup_google():
                         google_enabled = True
                         )
                  db.session.commit()
+            user = User.query.filter_by(email=id_info["email"]).one_or_none()
             do_login(user)
+            token = User.encode_auth_token(user.email)
+            return {"token":token, "msg":f"Hi, {user.name}! Welcome to Route Runner!", "id_info":id_info}
         except ValueError:
             return "Wrong Issuer"
-        return id_info
+    else:
+        return "No token sent"
 
 
 
@@ -133,7 +139,8 @@ def login():
             user = User.authenticate(request.json["email"], request.json["password"])
             if user:
                 do_login(user)
-                return f"Hi {user.name}, Welcome back to Route Runner!"
+                token = User.encode_auth_token(user.email)
+                return {"token":token, "msg":f"Hi, {user.name}! Welcome to Route Runner!"}
             else:
                 return "The username and password you entered did not match our records. Please double-check and try again."
         else:
@@ -150,6 +157,16 @@ def logout():
         return f"See you later, {user.name}", "success"
     else:
         raise InvalidUsage("You are not logged in", 401)
+
+
+@app.route("/auth_token", methods=["POST"])
+def auth_token():
+    auth_token = request.json.get("token")
+    new_token = User.validate_token(auth_token)
+    if new_token:
+        return {"token": new_token}
+    else:
+        return "Session Timed Out. Please log in again."
 
 
 @app.route("/<user_id>/routes", methods=["GET"])

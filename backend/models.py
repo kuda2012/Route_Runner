@@ -1,7 +1,9 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from sqlalchemy.dialects.postgresql import ARRAY
-
+import jwt
+import os
+import datetime
 db = SQLAlchemy()
 bcrypt = Bcrypt()
 
@@ -84,6 +86,33 @@ class User(db.Model):
                 return user
 
         return False
+    @classmethod
+    def encode_auth_token(cls, user_email):
+        """
+        Generates the Auth Token
+        :return: string
+        """
+        try:
+            payload = {
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=14),
+                'iat': datetime.datetime.utcnow(),
+                'email': user_email
+            }
+            return jwt.encode(
+                payload,
+                os.getenv('SECRET_KEY', 'my_precious'),
+                algorithm='HS256'
+            )
+        except Exception as e:
+            return e
+    @classmethod
+    def validate_token(cls, token):
+        verified = jwt.decode(token, os.getenv('SECRET_KEY', 'my_precious'), algorithms='HS256')
+        if verified:
+            return cls.encode_auth_token(verified["email"])
+        else:
+            return False
+
 class Routes(db.Model):
     """Jogging Routes Created."""
 
