@@ -41,23 +41,21 @@ def add_user_to_g(self):
     """If we're logged in, add curr user to Flask global."""
     if CURR_USER_KEY in session:
         g.user = User.query.get(session[CURR_USER_KEY])
-        print(g.user)
-
     else:
         g.user = None
 
 
-def do_login(user):
-    """Log in user."""
+# def do_login(user):
+#     """Log in user."""
 
-    session[CURR_USER_KEY] = user.id
+#     session[CURR_USER_KEY] = user.id
 
 
-def do_logout():
-    """Logout user."""
+# def do_logout():
+#     """Logout user."""
 
-    if CURR_USER_KEY in session:
-        del session[CURR_USER_KEY]
+#     if CURR_USER_KEY in session:
+#         del session[CURR_USER_KEY]
 
 
 class InvalidUsage(Exception):
@@ -96,20 +94,20 @@ def signup():
                     google_enabled=False
                     )
         db.session.commit()
-        do_login(user)
-        token = User.encode_auth_token(user.email)
-        return {"token":token, "msg":f"Hi, {user.name}! Welcome to Route Runner!"}
+        # do_login(user)
+        token_normal = User.encode_auth_token(user.email)
+        return {"token_normal":token_normal, "msg":f"Hi, {user.name}! Welcome to Route Runner!"}
     except IntegrityError:
         return ("Sorry. This email has already been taken. Please choose a different one.")
 
 @app.route('/signup/google', methods=["POST"])
 def signup_google():
     """Signup Through Google"""
-    if request.json.get("token"):
+    if request.json.get("token_google"):
         try:
             request1 = requests.Request()
             id_info = id_token.verify_oauth2_token(
-                request.json["token"], request1, CLIENT_ID)
+                request.json["token_google"], request1, CLIENT_ID)
             if id_info['iss'] != 'accounts.google.com':
                 raise ValueError('Wrong issuer.')
             if not User.query.filter_by(email=id_info.get("email")).one_or_none():
@@ -121,9 +119,9 @@ def signup_google():
                         )
                  db.session.commit()
             user = User.query.filter_by(email=id_info["email"]).one_or_none()
-            do_login(user)
-            token = User.encode_auth_token(user.email)
-            return {"token":token, "msg":f"Hi, {user.name}! Welcome to Route Runner!", "id_info":id_info}
+            # do_login(user)
+            token_google = User.encode_auth_token(user.email)
+            return {"token_google":token_google, "msg":f"Hi, {user.name}! Welcome to Route Runner!", "id_info":id_info}
         except ValueError:
             return "Wrong Issuer"
     else:
@@ -135,12 +133,12 @@ def signup_google():
 def login():
     get_user = User.query.filter_by(email=request.json.get("email")).one_or_none()
     if get_user:
-        if not get_user.google_enabled: 
+        if not get_user.google_enabled:
             user = User.authenticate(request.json["email"], request.json["password"])
             if user:
-                do_login(user)
-                token = User.encode_auth_token(user.email)
-                return {"token":token, "msg":f"Hi, {user.name}! Welcome to Route Runner!"}
+                # do_login(user)
+                token_normal = User.encode_auth_token(user.email)
+                return {"token_normal":token_normal, "msg":f"Hi, {user.name}! Welcome to Route Runner!"}
             else:
                 return "The username and password you entered did not match our records. Please double-check and try again."
         else:
@@ -153,7 +151,7 @@ def logout():
     """Handle logout of user."""
     if g.user:
         user = User.query.get(session[CURR_USER_KEY])
-        do_logout()
+        # do_logout()
         return f"See you later, {user.name}", "success"
     else:
         raise InvalidUsage("You are not logged in", 401)
@@ -161,10 +159,13 @@ def logout():
 
 @app.route("/auth_token", methods=["POST"])
 def auth_token():
-    auth_token = request.json.get("token")
+    auth_token = request.json.get("token_google",  request.json.get("token_normal")) 
     new_token = User.validate_token(auth_token)
     if new_token:
-        return {"token": new_token}
+        if request.json.get("token_google"):
+            return {"token_google": new_token}
+        else:
+             return {"token_normal": new_token}
     else:
         return "Session Timed Out. Please log in again."
 

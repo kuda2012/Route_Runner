@@ -2,36 +2,26 @@ import React, { useEffect, useState } from "react";
 import { useGoogleLogin } from "react-google-login";
 import googleIcon from "../icons/google.svg";
 import axios from "axios";
-
-// refresh token
+import { loggingInGoogle } from "../helpers/actionCreators";
+import { useSelector, useDispatch } from "react-redux";
 import { refreshTokenSetup } from "../utils/refreshToken";
 
 const clientId =
   "1039642844103-gr5uhujf57uobmu1pha83qgj3mctgpjn.apps.googleusercontent.com";
 
-function Login() {
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [tokenId, setTokenId] = useState(null);
-  useEffect(() => {
-    async function verifyLogin() {
-      if (loggedIn) {
-        const response = await axios.post(
-          "http://127.0.0.1:5000/signup/google",
-          {
-            token: tokenId,
-          }
-        );
-        console.log(response);
-      }
-    }
-    verifyLogin();
-  });
-
+function LoginGoogle() {
+  const loggedInGoogle = useSelector((state) => state.loggedInGoogle);
+  const token = useSelector((state) => state.token);
+  const dispatch = useDispatch();
+  // useEffect(() => {
+  //   async function verifyLogin() {
+  //   }
+  //   verifyLogin();
+  // });
   const onSuccess = (res) => {
     console.log(res);
     console.log("Login Success: currentUser:", res.profileObj);
-    setTokenId(res.tokenId);
-    setLoggedIn(true);
+    dispatch(loggingInGoogle(res.tokenId));
     alert(
       `Logged in successfully welcome ${res.profileObj.name} 😍. \n See console for full profile object.`
     );
@@ -61,4 +51,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default LoginGoogle;
