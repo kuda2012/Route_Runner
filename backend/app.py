@@ -4,7 +4,7 @@ from flask_expects_json import expects_json
 from flask_json_schema import JsonSchema, JsonValidationError
 from sqlalchemy.exc import IntegrityError
 from google.oauth2 import id_token
-from google.auth.transport import requests
+from google.auth.transport import requests as google_auth_request
 import os
 import jwt
 import re
@@ -105,23 +105,22 @@ def signup_google():
     """Signup Through Google"""
     if request.json.get("token_google"):
         try:
-            request1 = requests.Request()
+            req = google_auth_request.Request()
             id_info = id_token.verify_oauth2_token(
-                request.json["token_google"], request1, CLIENT_ID)
-            if id_info['iss'] != 'accounts.google.com':
-                raise ValueError('Wrong issuer.')
-            if not User.query.filter_by(email=id_info.get("email")).one_or_none():
-                 user = User.signup(
-                        name=id_info["name"],
-                        password=id_info["name"],
-                        email=id_info["email"],
-                        google_enabled = True
-                        )
-                 db.session.commit()
-            user = User.query.filter_by(email=id_info["email"]).one_or_none()
-            # do_login(user)
-            token_google = User.encode_auth_token(user.email)
-            return {"token_google":token_google, "msg":f"Hi, {user.name}! Welcome to Route Runner!", "id_info":id_info}
+                request.json["token_google"], req, CLIENT_ID)
+            if id_info['iss'] == 'accounts.google.com':
+                if not User.query.filter_by(email=id_info.get("email")).one_or_none():
+                    user = User.signup(
+                            name=id_info["name"],
+                            password=id_info["name"],
+                            email=id_info["email"],
+                            google_enabled = True
+                            )
+                    db.session.commit()
+                user = User.query.filter_by(email=id_info["email"]).one_or_none()
+                return {"token_google": request.json["token_google"], "msg": f"Hi, {user.name}! Welcome to Route Runner!", "id_info": id_info}
+            else:
+                return {"token_google": request.json["token_google"]}
         except ValueError:
             return "Wrong Issuer"
     else:

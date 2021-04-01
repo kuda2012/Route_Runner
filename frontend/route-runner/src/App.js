@@ -9,17 +9,8 @@ import Router from "./Router";
 function App() {
   const loggedInGoogle = useSelector((state) => state.loggedInGoogle);
   const loggedInNormal = useSelector((state) => state.loggedInNormal);
-  const token = useSelector((state) => state.token);
   const dispatch = useDispatch();
   useEffect(() => {
-    if (
-      !loggedInGoogle &&
-      !loggedInNormal &&
-      localStorage.getItem("token_google") &&
-      !localStorage.getItem("token_normal")
-    ) {
-      dispatch(loggingInGoogle(localStorage.getItem("token_google")));
-    }
     if (
       !loggedInGoogle &&
       !loggedInNormal &&

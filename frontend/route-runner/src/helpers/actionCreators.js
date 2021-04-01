@@ -39,6 +39,20 @@ export function loggingInNormal(formData) {
     }
   };
 }
+export function SigningUpNormal(formData) {
+  return async function (dispatch) {
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:5000/signup",
+        formData
+      );
+      dispatch(normalTokenReceived(response.data.token_normal));
+    } catch (error) {
+      localStorage.removeItem("token_normal");
+      console.log(error);
+    }
+  };
+}
 export function googleTokenReceived(token_google, loggedInGoogle = true) {
   return {
     type: "LOG_IN_GOOGLE",

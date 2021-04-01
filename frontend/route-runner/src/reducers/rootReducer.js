@@ -1,5 +1,4 @@
 const INITIAL_STATE = {
-  token_google: "",
   token_normal: "",
   loggedInGoogle: false,
   loggedInNormal: false,
@@ -8,7 +7,6 @@ const INITIAL_STATE = {
 function rootReducer(state = INITIAL_STATE, action) {
   switch (action.type) {
     case "LOG_IN_GOOGLE":
-      localStorage.setItem("token_google", action.token_google);
       return {
         ...state,
         loggedInGoogle: action.loggedInGoogle,

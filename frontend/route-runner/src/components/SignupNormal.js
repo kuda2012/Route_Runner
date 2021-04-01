@@ -1,22 +1,22 @@
 import React, { useState } from "react";
 import { Switch, Route, Redirect } from "react-router-dom";
 
-const LoginNormal = () => {
+const SignupNormal = () => {
   const [redirect, setRedirect] = useState(false);
 
   return (
     <>
-      {redirect && <Redirect push to="/login" />}
+      {redirect && <Redirect push to="/signup" />}
       <button
         onClick={() => {
           setRedirect(true);
         }}
         className="button"
       >
-        <span className="buttonText">Sign in (Not with Google) </span>
+        <span className="buttonText">Sign Up (Not with Google) </span>
       </button>
     </>
   );
 };
 
-export default LoginNormal;
+export default SignupNormal;
