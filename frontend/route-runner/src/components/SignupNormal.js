@@ -9,7 +9,7 @@ const SignupNormal = () => {
       {redirect && <Redirect push to="/signup" />}
       <button
         onClick={() => {
-          setRedirect(true);
+          setRedirect(!redirect);
         }}
         className="button"
       >

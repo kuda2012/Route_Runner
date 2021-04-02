@@ -9,7 +9,7 @@ const LoginNormal = () => {
       {redirect && <Redirect push to="/login" />}
       <button
         onClick={() => {
-          setRedirect(true);
+          setRedirect(!redirect);
         }}
         className="button"
       >

@@ -1,16 +1,18 @@
 import React, { useState, useRef } from "react";
 import { NavLink, useHistory } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import LoginOrSignupButtons from "./LoginOrSignupButtons";
-const Home = () => {
+import LoginNormal from "./LoginNormal";
+import SignupNormal from "./SignupNormal";
+import LoginGoogle from "./LoginGoogle";
+
+const LoginOrSignupButtons = () => {
   const loggedInGoogle = useSelector((state) => state.loggedInGoogle);
   const loggedInNormal = useSelector((state) => state.loggedInNormal);
   return (
-    <>
-      <h3 className="display-3">Route Runner</h3>
-      <div className="text-muted">Plan your run today</div>
-    </>
+    <div id="LoginOrSignupButtons">
+      {!loggedInGoogle && !loggedInNormal && <LoginGoogle></LoginGoogle>}
+    </div>
   );
 };
 
-export default Home;
+export default LoginOrSignupButtons;

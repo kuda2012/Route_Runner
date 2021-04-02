@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { Button } from "reactstrap";
 import { loggingInNormal } from "../helpers/actionCreators";
+import LoginOrSignupButtons from "./LoginOrSignupButtons";
+import "../styles/LoginOrSignupButtons.css";
 const LoginForm = () => {
-  const initialState = {
+  const INITIAL_STATE = {
     email: "",
     password: "",
   };
-  const [formData, setFormData] = useState(initialState);
+  const [formData, setFormData] = useState(INITIAL_STATE);
   const [isInvalid, setIsInvalid] = useState(true);
   const [isTouched, setIsTouched] = useState(false);
   const dispatch = useDispatch();
@@ -24,9 +26,11 @@ const LoginForm = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     dispatch(loggingInNormal(formData));
+    setFormData(INITIAL_STATE);
   };
   return (
-    <div className="card">
+    <div className="card form-card">
+      <LoginOrSignupButtons id="LoginOrSignupButtons" />
       <h4 id="title">Login</h4>
       <div className="card-body">
         <form onSubmit={handleSubmit} className="Login-form">

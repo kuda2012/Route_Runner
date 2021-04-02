@@ -32,9 +32,9 @@ function LogoutGoogle() {
         src={googleIcon}
         alt="google login"
         className="icon"
-        style={{ cursor: "context-menu" }}
+        style={{ cursor: "pointer" }}
       ></img>
-      <span style={{ cursor: "context-menu" }}>Sign out</span>
+      <span style={{ cursor: "pointer" }}>Sign out</span>
     </div>
   );
 }

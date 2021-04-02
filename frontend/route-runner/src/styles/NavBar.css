@@ -1,0 +1,6 @@
+.nav-item {
+  padding: 0px 5px;
+}
+.nav-item:hover {
+  text-decoration: underline;
+}

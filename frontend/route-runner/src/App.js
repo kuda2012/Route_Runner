@@ -5,6 +5,7 @@ import LoginGoogle from "./components/LoginGoogle";
 import Logout from "./components/LogoutGoogle";
 import NavBar from "./components/NavBar";
 import Router from "./Router";
+import "./styles/App.css";
 
 function App() {
   const loggedInGoogle = useSelector((state) => state.loggedInGoogle);
@@ -21,10 +22,12 @@ function App() {
     }
   });
   return (
-    <>
+    <div id="App">
       <NavBar />
-      <Router />
-    </>
+      <div id="ContainerForAll">
+        <Router />
+      </div>
+    </div>
   );
 }
 
