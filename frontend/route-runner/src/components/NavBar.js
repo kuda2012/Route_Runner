@@ -20,8 +20,7 @@ const NavBar = () => {
   const dispatch = useDispatch();
   function signOut() {
     dispatch(logOut());
-    console.log("Logged out Success");
-    alert("Logged out Successfully ✌");
+    alert("Thanks for using Route Runner. See you later✌");
   }
   return (
     <Navbar expand="md" className="navbar navbar-expand-lg navbar-dark bg-dark">

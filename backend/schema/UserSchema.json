@@ -1,11 +1,21 @@
 {
   "type": "object",
   "properties": {
-    "name": { "type": "string", "minLength": 4, "maxLength": 15 },
-    "email": { "type": "string", "pattern": "[^@]+@[^@]+.[^@]" },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40,
+      "error_msg": "Name must be between 1 and 40 characters long"
+    },
+    "email": {
+      "type": "string",
+      "pattern": "^w+@[a-zA-Z_]+?.[a-zA-Z]{2,3}$",
+      "error_msg": "Email must be in proper format. Ex: John@gmail.com"
+    },
     "password": {
       "type": "string",
-      "minLength": 6
+      "minLength": 6,
+      "error_msg": "Password must be longer than 5 characters"
     }
   },
   "required": ["name", "email", "password"]

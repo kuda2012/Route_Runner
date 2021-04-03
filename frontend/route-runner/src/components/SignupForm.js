@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { Button } from "reactstrap";
-import { SigningUpNormal } from "../helpers/actionCreators";
+import { signingUpNormal } from "../helpers/actionCreators";
 import LoginOrSignupButtons from "./LoginOrSignupButtons";
 import "../styles/LoginOrSignupButtons.css";
 const SignupForm = () => {
   const INITIAL_STATE = {
     email: "",
     password: "",
-    name: "name",
+    name: "",
   };
   const [formData, setFormData] = useState(INITIAL_STATE);
   const [isInvalid, setIsInvalid] = useState(true);
@@ -26,7 +26,7 @@ const SignupForm = () => {
   };
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(SigningUpNormal(formData));
+    dispatch(signingUpNormal(formData));
     setFormData(INITIAL_STATE);
   };
   return (
@@ -44,9 +44,9 @@ const SignupForm = () => {
               type="text"
               id="name"
               className="form-control"
-              name="text"
+              name="name"
               onChange={handleChange}
-              value={formData.text}
+              value={formData.name}
             />
           </div>
           <div className="Login-form-items form-group">

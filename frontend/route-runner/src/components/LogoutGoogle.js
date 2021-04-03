@@ -12,8 +12,7 @@ function LogoutGoogle() {
   const dispatch = useDispatch();
   const onLogoutSuccess = (res) => {
     dispatch(logOut());
-    console.log("Logged out Success");
-    alert("Logged out Successfully ✌");
+    alert("Thanks for using Route Runner. See you later✌");
   };
 
   const onFailure = () => {

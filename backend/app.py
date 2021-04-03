@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, session, g, redirect
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_expects_json import expects_json
 from flask_json_schema import JsonSchema, JsonValidationError
+from jsonschema import validate, ValidationError
 from sqlalchemy.exc import IntegrityError
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_auth_request
@@ -59,7 +60,7 @@ def add_user_to_g(self):
 
 
 class InvalidUsage(Exception):
-    status_code = 400
+    status_code = 401
 
     def __init__(self, message, status_code=None, payload=None):
         Exception.__init__(self)
@@ -83,9 +84,12 @@ with open('./schema/UserSchema.json') as f:
     schema = json.load(f)
 
 @app.route('/signup', methods=["POST"])
-@expects_json(schema)
 def signup():
-    """Signup"""
+    """Signup (w/o google)"""
+    try:
+        validate(request.json, schema=schema)
+    except ValidationError as e:
+        raise InvalidUsage(e.schema["error_msg"], 400)
     try:
         user = User.signup(
                     name=request.json["name"],
@@ -94,15 +98,14 @@ def signup():
                     google_enabled=False
                     )
         db.session.commit()
-        # do_login(user)
         token_normal = User.encode_auth_token(user.email)
         return {"token_normal":token_normal, "msg":f"Hi, {user.name}! Welcome to Route Runner!"}
     except IntegrityError:
-        return ("Sorry. This email has already been taken. Please choose a different one.")
+        raise InvalidUsage("This email has already been taken. Please choose a different one.", 409)
 
 @app.route('/signup/google', methods=["POST"])
 def signup_google():
-    """Signup Through Google"""
+    """Signup through Google"""
     if request.json.get("token_google"):
         try:
             req = google_auth_request.Request()
@@ -139,11 +142,11 @@ def login():
                 token_normal = User.encode_auth_token(user.email)
                 return {"token_normal":token_normal, "msg":f"Hi, {user.name}! Welcome to Route Runner!"}
             else:
-                return "The username and password you entered did not match our records. Please double-check and try again."
+                raise InvalidUsage("The username and password you entered did not match our records. Please double-check and try again.", 401)
         else:
-            return f"This user has already registered an account through google sign-in. Please use that option to sign in."
+            raise InvalidUsage("This user has already registered an account through Google sign-in. Please use that option to sign in.", 403) 
     else:
-        return "The username and password you entered did not match our records. Please double-check and try again."
+        raise InvalidUsage("The username and password you entered did not match our records. Please double-check and try again.", 401)
 
 @app.route('/logout', methods = ["POST"])
 def logout():

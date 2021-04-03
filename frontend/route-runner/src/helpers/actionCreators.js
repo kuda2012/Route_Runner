@@ -8,7 +8,7 @@ export function loggingInGoogle(tokenId) {
       dispatch(googleTokenReceived(response.data.token_google));
     } catch (error) {
       localStorage.removeItem("token_google");
-      console.log(error);
+      console.log(error.response.data);
     }
   };
 }
@@ -35,11 +35,11 @@ export function loggingInNormal(formData) {
       dispatch(normalTokenReceived(response.data.token_normal));
     } catch (error) {
       localStorage.removeItem("token_normal");
-      console.log(error);
+      alert(error.response.data.message);
     }
   };
 }
-export function SigningUpNormal(formData) {
+export function signingUpNormal(formData) {
   return async function (dispatch) {
     try {
       const response = await axios.post(
@@ -49,7 +49,7 @@ export function SigningUpNormal(formData) {
       dispatch(normalTokenReceived(response.data.token_normal));
     } catch (error) {
       localStorage.removeItem("token_normal");
-      console.log(error);
+      alert(error.response.data.message);
     }
   };
 }
