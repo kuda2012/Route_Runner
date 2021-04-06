@@ -37,29 +37,8 @@ connect_db(app)
 db.create_all()
 
 
-@app.teardown_request
-def add_user_to_g(self):
-    """If we're logged in, add curr user to Flask global."""
-    if CURR_USER_KEY in session:
-        g.user = User.query.get(session[CURR_USER_KEY])
-    else:
-        g.user = None
-
-
-# def do_login(user):
-#     """Log in user."""
-
-#     session[CURR_USER_KEY] = user.id
-
-
-# def do_logout():
-#     """Logout user."""
-
-#     if CURR_USER_KEY in session:
-#         del session[CURR_USER_KEY]
-
-
 class InvalidUsage(Exception):
+    "Creating error object"
     status_code = 401
 
     def __init__(self, message, status_code=None, payload=None):
@@ -81,6 +60,7 @@ def handle_invalid_usage(error):
     return response
 
 with open('./schema/UserSchema.json') as f:
+    "Loads in our json schema"
     schema = json.load(f)
 
 @app.route('/signup', methods=["POST"])
@@ -133,6 +113,7 @@ def signup_google():
 
 @app.route('/login', methods=["POST"])
 def login():
+    "Login without google"
     get_user = User.query.filter_by(email=request.json.get("email")).one_or_none()
     if get_user:
         if not get_user.google_enabled:
@@ -148,28 +129,17 @@ def login():
     else:
         raise InvalidUsage("The username and password you entered did not match our records. Please double-check and try again.", 401)
 
-@app.route('/logout', methods = ["POST"])
-def logout():
-    """Handle logout of user."""
-    if g.user:
-        user = User.query.get(session[CURR_USER_KEY])
-        # do_logout()
-        return f"See you later, {user.name}", "success"
-    else:
-        raise InvalidUsage("You are not logged in", 401)
-
 
 @app.route("/auth_token", methods=["POST"])
 def auth_token():
-    auth_token = request.json.get("token_google",  request.json.get("token_normal")) 
-    new_token = User.validate_token(auth_token)
-    if new_token:
-        if request.json.get("token_google"):
-            return {"token_google": new_token}
-        else:
-             return {"token_normal": new_token}
-    else:
-        return "Session Timed Out. Please log in again."
+    "Verify user is allowed to be logged in"
+    try:     
+        auth_token = request.json.get("token_normal") 
+        new_token = User.validate_token(auth_token)
+        if new_token:
+            return {"token_normal": new_token}
+    except jwt.exceptions.ExpiredSignatureError:
+        raise InvalidUsage("Session Timed Out. Please log in again.", 401)
 
 
 @app.route("/<user_id>/routes", methods=["GET"])

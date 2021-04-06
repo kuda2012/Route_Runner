@@ -9,7 +9,7 @@
     },
     "email": {
       "type": "string",
-      "pattern": "^w+@[a-zA-Z_]+?.[a-zA-Z]{2,3}$",
+      "format": "email",
       "error_msg": "Email must be in proper format. Ex: John@gmail.com"
     },
     "password": {

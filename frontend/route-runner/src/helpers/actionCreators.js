@@ -21,7 +21,7 @@ export function authTokenNormal(tokenId) {
       dispatch(normalTokenReceived(response.data.token_normal));
     } catch (error) {
       localStorage.removeItem("token_normal");
-      console.log(error);
+      alert(error.response.data.message);
     }
   };
 }

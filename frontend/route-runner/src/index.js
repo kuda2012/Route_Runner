@@ -6,6 +6,7 @@ import App from "./App";
 // import "bootswatch/dist/slate/bootstrap.min.css";
 // import "bootswatch/dist/darkly/bootstrap.min.css";
 import "bootswatch/dist/solar/bootstrap.min.css";
+// import "leaflet/dist/leaflet.css";
 import { createStore, applyMiddleware, compose } from "redux";
 import { Provider } from "react-redux";
 import { rootReducer } from "./reducers/rootReducer";
